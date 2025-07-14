@@ -47,10 +47,7 @@ with TLCameraSDK() as sdk:
                     frame.image_buffer
                     image_buffer_copy = np.copy(frame.image_buffer)
                     numpy_shaped_image = image_buffer_copy.reshape(camera.image_height_pixels, camera.image_width_pixels)
-                    nd_image_array = np.full((camera.image_height_pixels, camera.image_width_pixels, 3), 0, dtype=np.uint8)
-                    # nd_image_array[:,:,0] = numpy_shaped_image
-                    # nd_image_array[:,:,1] = numpy_shaped_image
-                    # nd_image_array[:,:,2] = numpy_shaped_image
+                    nd_image_array = np.zeros((camera.image_height_pixels, camera.image_width_pixels, 1), dtype=np.uint8)
                     # Normalize 12- or 16-bit image to 0–255 8-bit
                     norm_img = cv2.normalize(numpy_shaped_image, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX).astype(np.uint8)
           
