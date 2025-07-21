@@ -32,6 +32,7 @@ EXPOSURE_TIME_MS = 2
 NUM_FRAMES_TO_AVG = 20
 DWELL_TIME = 0.3  # time in sec to wait between each voltage jump for magnetization to settle
 IMG_SETTING = "data"
+PROGRAM_ACTION = "sweep"  # picture/sweep
 images_saved = 0  # I'm really sorry lol this is for labeling data at overlapping voltages
 # create data folders
 DATA_DIR = f"data/{EXPERIMENT_TIME}"
@@ -76,19 +77,19 @@ def take_avg_picture(camera, roi=None, verbose=False):
     return avg_image, mean, total, snr
 
 
-# sweep out a magnetic field
-def sweep(data, VOLTAGES, psu, camera, roi):
+# sweep out a magnetic field, v_multiplier is just used to make the voltage negative on reverse sweep
+def sweep(data, v_multiplier, VOLTAGES, psu, camera, roi):
     for volt in VOLTAGES:
         psu.write(f"VOLT {volt}")
         time.sleep(DWELL_TIME)  # Allow settling
         voltage = float(psu.query("MEAS:VOLT?").strip())
         current = float(psu.query("MEAS:CURR?").strip())
-        print(f"V = {voltage} V, I = {current} A")
+        print(f"V = {v_multiplier*voltage} V, I = {current} A")
 
         avg_image, mean, total, snr = take_avg_picture(camera, roi, verbose=True)
         # save data to corresponding lists
         # as of Python 3.7, insertion order in dictionaries is preserved
-        collected_data = [voltage, current, mean, total, snr]
+        collected_data = [v_multiplier*voltage, current, mean, total, snr]
         for key, value in zip(data.keys(), collected_data):
             data[key].append(value)
         # save image array just in case
@@ -128,21 +129,21 @@ def main(action):
                 camera.image_poll_timeout_ms = 1000  # 1 second polling timeout
 
                 old_roi = camera.roi
-
+                
                 match IMG_SETTING:
                     # this ROI sees a 3x3 grid of patterns clearly 
                     case "grid":
-                        # x, y, width, height = 700, 1200, 1000, 1000
+                        x, y, width, height = 700, 1200, 1000, 1000
                         roi_x, roi_y, roi_width, roi_height = 0, 0, width, height
                     # this camera ROI focuses on just one (top left of the 3x3 grid)
                     case "single":
-                        x, y, width, height = 750, 1350, 300, 300
+                        x, y, width, height = 730, 1410, 300, 300
                         # this real ROI (which will crop the image smaller than the camera can take it) fits the entire pattern
                         roi_x, roi_y, roi_width, roi_height = 0, 0, 120, 140
                     case "data":
-                        x, y, width, height = 750, 1350, 300, 300
+                        x, y, width, height = 730, 1410, 300, 300
                         # this real ROI fits (mostly) within the pattern, so it's pure signal
-                        roi_x, roi_y, roi_width, roi_height = 30, 35, 60, 75
+                        roi_x, roi_y, roi_width, roi_height = 35, 25, 60, 85
 
                 camera.roi = (x, y, x + width, y + height)
                 # TODO: This should be its own struct/datatype but bear with me lol I'm tired
@@ -175,25 +176,27 @@ def main(action):
                         }
                         
                         START_TIME = time.time()
-                        VOLTAGES_FORWARD = np.arange(0, 36, 0.5)  
-                        VOLTAGES_BACK = np.arange(35, -0.1, -0.5)
+                        # VOLTAGES_FORWARD = np.arange(0, 36, 0.5)  
+                        # VOLTAGES_BACK = np.arange(35, -0.1, -0.5)
+                        VOLTAGES_FORWARD = np.arange(0, 20, 1)  
+                        VOLTAGES_BACK = np.arange(19, -0.1, -1)
                         
                         # 0 to H+
-                        sweep(data, VOLTAGES_FORWARD, psu, camera, real_roi)
+                        sweep(data, 1, VOLTAGES_FORWARD, psu, camera, real_roi)
                         # H+ to 0
-                        sweep(data, VOLTAGES_BACK, psu, camera, real_roi)
-                        # # manually switch voltages
-                        # input("Swap the voltages now, press enter when ready")
-                        # # 0 to H-
-                        # sweep(data, VOLTAGES_FORWARD, psu, camera, real_roi)
-                        # # H- to 0
-                        # sweep(data, VOLTAGES_BACK, psu, camera, real_roi)
+                        sweep(data, 1, VOLTAGES_BACK, psu, camera, real_roi)
+                        # manually switch voltages
+                        input("Swap the voltages now, press enter when ready")
+                        # 0 to H-
+                        sweep(data, -1, VOLTAGES_FORWARD, psu, camera, real_roi)
+                        # H- to 0
+                        sweep(data, -1, VOLTAGES_BACK, psu, camera, real_roi)
 
-                        # input("Swap the voltages now, press enter when ready")
-                        # # 0 to H+
-                        # sweep(data, VOLTAGES_FORWARD, psu, camera, real_roi)
-                        # # we don't want to linger at high voltage and melt the magnets lol
-                        # psu.write("VOLT 0")
+                        input("Swap the voltages now, press enter when ready")
+                        # 0 to H+
+                        sweep(data, 1, VOLTAGES_FORWARD, psu, camera, real_roi)
+                        # we don't want to linger at high voltage and melt the magnets lol
+                        psu.write("VOLT 0")
 
 
                         STOP_TIME = time.time()
@@ -209,16 +212,16 @@ def main(action):
                             "Images averaged": NUM_FRAMES_TO_AVG,
                             "Time elapsed": TIME_ELAPSED,
                         }
-                        with open(f"{DATA_DIR}/H+_data.csv", "w") as f:
+                        with open(f"{DATA_DIR}/data_{EXPERIMENT_TIME}.csv", "w") as f:
                             for key, value in metadata.items():
                                 f.write(f"# {key}: {value}\n")
                             df.to_csv(f, index=False)
                         # plot data
-                        plt.scatter(x=data["Voltage (V)"], y=data["Average Intensity"])
+                        plt.scatter(data["Voltage (V)"], data["Average Intensity"])
                         plt.title("Average Intensity vs Applied Voltage")
                         plt.xlabel("Voltage (V)")
-                        plt.ylabel("Average Intensity")
-                        plt.savefig(EXPERIMENT_TIME)
+                        plt.ylabel("Intensity (Counts)")
+                        plt.savefig(f"data/{EXPERIMENT_TIME}/plot")
 
                     case "picture":
                         avg_image, _, _, _ = take_avg_picture(camera, real_roi, verbose=True)
@@ -240,5 +243,5 @@ def main(action):
 
 #  Because we are using the 'with' statement context-manager, disposal has been taken care of.
 if __name__ == "__main__":
-    main("sweep")
+    main(PROGRAM_ACTION)
     print("program completed")

@@ -34,7 +34,7 @@ with TLCameraSDK() as sdk:
         old_roi = camera.roi
         # x, y, width, height = 1000, 1200, 1000, 1000
         # new ROI for proper alignment to p axis, best pattern is the top left one
-        x, y, width, height = 700, 1200, 1000, 1000
+        x, y, width, height = 100, 1200, 1600, 1000
         camera.roi = (x, y, x + width, y + height)
         print(camera.roi)
 
