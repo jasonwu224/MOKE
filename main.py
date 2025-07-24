@@ -28,8 +28,8 @@ except ImportError:
 # VOLTAGES should be here but since the DC power is unidirectional, I have to
 # manually swap the voltages for negative side of sweep lol
 EXPERIMENT_TIME = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-EXPOSURE_TIME_MS = 2
-NUM_FRAMES_TO_AVG = 20
+EXPOSURE_TIME_MS = 4
+NUM_FRAMES_TO_AVG = 15
 DWELL_TIME = 0.3  # time in sec to wait between each voltage jump for magnetization to settle
 IMG_SETTING = "data"
 PROGRAM_ACTION = "sweep"  # picture/sweep
@@ -133,17 +133,18 @@ def main(action):
                 match IMG_SETTING:
                     # this ROI sees a 3x3 grid of patterns clearly 
                     case "grid":
-                        x, y, width, height = 700, 1200, 1000, 1000
+                        x, y, width, height = 800, 1400, 1800, 1100
                         roi_x, roi_y, roi_width, roi_height = 0, 0, width, height
                     # this camera ROI focuses on just one (top left of the 3x3 grid)
                     case "single":
-                        x, y, width, height = 730, 1410, 300, 300
+                        x, y, width, height = 1800, 1700, 300, 300
                         # this real ROI (which will crop the image smaller than the camera can take it) fits the entire pattern
-                        roi_x, roi_y, roi_width, roi_height = 0, 0, 120, 140
+                        roi_x, roi_y, roi_width, roi_height = 0, 0, 300, 300
                     case "data":
-                        x, y, width, height = 730, 1410, 300, 300
+                        # x, y, width, height = 1860, 1790, 300, 300
+                        x, y, width, height = 1860, 2040, 300, 300
                         # this real ROI fits (mostly) within the pattern, so it's pure signal
-                        roi_x, roi_y, roi_width, roi_height = 35, 25, 60, 85
+                        roi_x, roi_y, roi_width, roi_height = 10, 45, 55, 80
 
                 camera.roi = (x, y, x + width, y + height)
                 # TODO: This should be its own struct/datatype but bear with me lol I'm tired
@@ -178,8 +179,8 @@ def main(action):
                         START_TIME = time.time()
                         # VOLTAGES_FORWARD = np.arange(0, 36, 0.5)  
                         # VOLTAGES_BACK = np.arange(35, -0.1, -0.5)
-                        VOLTAGES_FORWARD = np.arange(0, 20, 1)  
-                        VOLTAGES_BACK = np.arange(19, -0.1, -1)
+                        VOLTAGES_FORWARD = np.arange(0, 15, 0.25)  
+                        VOLTAGES_BACK = np.arange(14.75, -0.1, -0.25)
                         
                         # 0 to H+
                         sweep(data, 1, VOLTAGES_FORWARD, psu, camera, real_roi)

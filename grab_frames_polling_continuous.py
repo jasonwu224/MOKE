@@ -25,16 +25,16 @@ with TLCameraSDK() as sdk:
         print("no cameras detected")
 
     with sdk.open_camera(available_cameras[0]) as camera:
-        camera.exposure_time_us = 2000  # set exposure to 4 ms
+        camera.exposure_time_us = 3000  # set exposure to 4 ms
         camera.frames_per_trigger_zero_for_unlimited = 0  # start camera in continuous mode
         camera.image_poll_timeout_ms = 1000  # 1 second polling timeout
         camera.frame_rate_control_value = 10
         camera.is_frame_rate_control_enabled = True
 
         old_roi = camera.roi
-        # x, y, width, height = 1000, 1200, 1000, 1000
+        x, y, width, height = 800, 1400, 1800, 1100
         # new ROI for proper alignment to p axis, best pattern is the top left one
-        x, y, width, height = 100, 1200, 1600, 1000
+        # x, y, width, height = 0, 0, 4095, 2999
         camera.roi = (x, y, x + width, y + height)
         print(camera.roi)
 
