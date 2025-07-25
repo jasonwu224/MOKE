@@ -1,0 +1,33 @@
+Thorlabs HNL100L Helium Neon Laser 632.8 nm 10 mW (mounted facing left)
+←
+Reflector mounted diagonally (reflects left facing laser down)
+↓
+Thorlabs SCFW6 16 mm cage mount (with what I assume is an ND filter)
+↓
+Magnifying biconvex lens (focuses laser)
+↓
+Rotating diffuser disk (scatters the laser beam to randomize wavefront and eliminate speckle, EXTREMELY important for camera imaging)
+↓
+10x objective lens (focuses light into fiber optic cable)
+↓
+Thorlabs M76L02 Multimode Hybrid Fiber Optic Patch Cable 400 um 0.39 NA
+←
+Speaker coupled to fiber optic cable with tape (For dithering, helps with image noise)
+→
+10x objective lens (collimates light, ie making the beams spread out but parallel)
+↗
+Thorlabs LPVISC050-MP2 12.5 mm diameter Linear Polarizer 510-800 nm (T-axis aligned horizontally for p-polarization)
+↗
+Thorlabs LB1471-A-ML biconvex lens f=50mm bbar coating 350-700 nm (focuses collimated and polarized beam onto sample)
+↗
+Sample (Patterned 60 nm CoFeB or 1200 nm CoCsNb) between two longitudinally-oriented electromagnets
+Electromagnets can accept a maximum of 0.7 A current provided 35 V from a DC supply
+Near the sample, a gaussmeter was used to calibrate voltage to gauss (gauss = 1.85*volts - 1.20)
+↘
+Thorlabs LB1471-A-ML biconvex lens f=50mm bbar coating 350-700 nm (focuses reflected beam through analyzer)
+↘
+Thorlabs LPVISC050-MP2 12.5 mm diameter Linear Polarizer 510-800 nm (T-axis aligned slightly off vertical to be slightly off extinction, acts as analyzer)
+↘
+Reflector (reflects laser into camera)
+↑
+Thorlabs Kiralux 12.3 MP CMOS Compact Scientific Camera CS126MU (capture the data for display and analysis)
