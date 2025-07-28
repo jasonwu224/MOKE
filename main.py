@@ -28,7 +28,7 @@ except ImportError:
 # VOLTAGES should be here but since the DC power is unidirectional, I have to
 # manually swap the voltages for negative side of sweep lol
 EXPERIMENT_TIME = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-EXPOSURE_TIME_MS = 4
+EXPOSURE_TIME_MS = 2
 NUM_FRAMES_TO_AVG = 15
 DWELL_TIME = 0.3  # time in sec to wait between each voltage jump for magnetization to settle
 IMG_SETTING = "data"
@@ -130,6 +130,7 @@ def main(action):
 
                 old_roi = camera.roi
                 
+                # the spacing width-wise between patterns is about 200 pixels
                 match IMG_SETTING:
                     # this ROI sees a 3x3 grid of patterns clearly 
                     case "grid":
@@ -137,14 +138,14 @@ def main(action):
                         roi_x, roi_y, roi_width, roi_height = 0, 0, width, height
                     # this camera ROI focuses on just one (top left of the 3x3 grid)
                     case "single":
-                        x, y, width, height = 1800, 1700, 300, 300
+                        x, y, width, height = 1600, 2100, 300, 300
                         # this real ROI (which will crop the image smaller than the camera can take it) fits the entire pattern
                         roi_x, roi_y, roi_width, roi_height = 0, 0, 300, 300
                     case "data":
                         # x, y, width, height = 1860, 1790, 300, 300
-                        x, y, width, height = 1860, 2040, 300, 300
+                        x, y, width, height = 1600, 2100, 300, 300
                         # this real ROI fits (mostly) within the pattern, so it's pure signal
-                        roi_x, roi_y, roi_width, roi_height = 10, 45, 55, 80
+                        roi_x, roi_y, roi_width, roi_height = 95, 75, 60, 85
 
                 camera.roi = (x, y, x + width, y + height)
                 # TODO: This should be its own struct/datatype but bear with me lol I'm tired
@@ -228,7 +229,18 @@ def main(action):
                         avg_image, _, _, _ = take_avg_picture(camera, real_roi, verbose=True)
                         # show/save an image 
                         norm_avg_image = cv2.normalize(avg_image, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX).astype(np.uint8)
-                        cv2.imshow("Image From TSI Cam", norm_avg_image)
+
+                        # callback to dynamically display pixel coordinates of mouse
+                        def mouse_callback(event, x, y, flags, param):
+                            if event == cv2.EVENT_MOUSEMOVE:
+                                text = f"X: {x}, Y: {y}"
+                                img_copy = norm_avg_image.copy()
+                                cv2.putText(img_copy, text, (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+                                cv2.imshow('Image Viewer', img_copy)
+
+                        cv2.namedWindow('Image Viewer')
+                        cv2.setMouseCallback('Image Viewer', mouse_callback)
+                        cv2.imshow("Image Viewer", norm_avg_image)
                         cv2.waitKey(0)
                         # cv2.imwrite("example_data_0V.png", norm_avg_image)
                 

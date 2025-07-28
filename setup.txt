@@ -20,7 +20,7 @@ Thorlabs LPVISC050-MP2 12.5 mm diameter Linear Polarizer 510-800 nm (T-axis alig
 ↗
 Thorlabs LB1471-A-ML biconvex lens f=50mm bbar coating 350-700 nm (focuses collimated and polarized beam onto sample)
 ↗
-Sample (Patterned 60 nm CoFeB or 1200 nm CoCsNb) between two longitudinally-oriented electromagnets
+Sample (Patterned 60 nm CoFeB or 1200 nm CoZrNb) between two longitudinally-oriented electromagnets
 Electromagnets can accept a maximum of 0.7 A current provided 35 V from a DC supply
 Near the sample, a gaussmeter was used to calibrate voltage to gauss (gauss = 1.85*volts - 1.20)
 ↘
